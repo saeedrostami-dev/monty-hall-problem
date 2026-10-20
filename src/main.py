@@ -28,25 +28,40 @@ def monty_hall_game(switch_doors: bool) -> bool:
     return doors[final_choice] == "car"
 
 
-def simulate_game(num_games: int) -> tuple[float, float]:
-    """Return win rates for staying and switching across multiple games."""
+def simulate_game_history(
+    num_games: int,
+) -> tuple[list[float], list[float]]:
+    """Return cumulative win rates for both strategies after each game."""
     if isinstance(num_games, bool) or not isinstance(num_games, int):
         raise TypeError("num_games must be an integer.")
 
     if num_games <= 0:
         raise ValueError("num_games must be greater than zero.")
 
-    wins_without_switching = sum(
-        monty_hall_game(False) for _ in range(num_games)
-    )
-    wins_with_switching = sum(
-        monty_hall_game(True) for _ in range(num_games)
-    )
+    stay_history = []
+    switch_history = []
 
-    return (
-        wins_without_switching / num_games,
-        wins_with_switching / num_games,
-    )
+    stay_wins = 0
+    switch_wins = 0
+
+    for game_number in range(1, num_games + 1):
+        if monty_hall_game(switch_doors=False):
+            stay_wins += 1
+
+        if monty_hall_game(switch_doors=True):
+            switch_wins += 1
+
+        stay_history.append(stay_wins / game_number)
+        switch_history.append(switch_wins / game_number)
+
+    return stay_history, switch_history
+
+
+def simulate_game(num_games: int) -> tuple[float, float]:
+    """Return final win rates for staying and switching."""
+    stay_history, switch_history = simulate_game_history(num_games)
+
+    return stay_history[-1], switch_history[-1]
 
 
 def main() -> None:
